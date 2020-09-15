@@ -25,40 +25,18 @@ export class D3FailuresTreeComponent implements OnInit {
   private dy = 159;
   private margin = { top: 60, right: 120, bottom: 10, left: 40 };
   private tree = d3.tree().nodeSize([ this.dx, this.dy ]);
-  private diagonal = d3.linkHorizontal().x(d => d[ 0 ]).y(d => d[ 1 ]);
+  private diagonal = d3.linkHorizontal().x((d: any) => d.x).y((d: any) => d.y);
 
   constructor() { }
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     this.createGraph();
   }
 
-  private createSvg() {
-    // this.svg = d3.select('figure#failures')
-    //   .append('svg')
-    //   .attr('width', '600px')
-    //   .attr('height', '600px')
-    //   .style('font', '10px sans-serif')
-    //   .style('user-select', 'none')
-    //   .append('g');
-
-    // this.gLink = this.svg.append('g')
-    //   .attr('fill', 'none')
-    //   .attr('stroke', '#555')
-    //   .attr('stroke-opacity', 0.4)
-    //   .attr('stroke-width', 1.5);
-
-    // this.gNode = this.svg.append('g')
-    //   .attr('cursor', 'pointer')
-    //   .attr('pointer-events', 'all');
-
+  private createSvg (): void {
     this.svg = d3.select('figure#failures')
       .append('svg')
-      // .attr('width', 600)
-      // .attr('height', 600)
-      // .attr('transform', 'translate(' + this.margin.top + ',' + this.margin + ')')
       .attr('viewBox', `0 0 600 600`)
-      // .style('transform', `translate(10px, 50px)`)
       .style('font', '22px sans-serif')
       .style('user-select', 'none');
 
@@ -75,7 +53,7 @@ export class D3FailuresTreeComponent implements OnInit {
 
   }
 
-  private createGraph() {
+  private createGraph (): void {
     this.root = d3.hierarchy(this.data);
     this.root.x = this.dy; // / 2;
     this.root.y = 0;
@@ -92,7 +70,7 @@ export class D3FailuresTreeComponent implements OnInit {
     return this.svg.node();
   }
 
-  private update(source) {
+  private update (source) {
     console.log(source);
     const duration = 2500;
     const nodes = this.root.descendants().reverse();
@@ -115,7 +93,7 @@ export class D3FailuresTreeComponent implements OnInit {
 
     const transition = this.svg.transition()
       .duration(duration)
-      .attr('viewBox', [ -this.margin.left, 0, 600, 600 ]);
+      .attr('viewBox', [ -this.margin.left, left.x - this.margin.top, 600, 600 ]);
     // .tween('resize', window.ResizeObserver ? null : () => () => this.svg.dispatch('toggle'));
 
     // Update the nodes…
@@ -173,11 +151,13 @@ export class D3FailuresTreeComponent implements OnInit {
     const link = this.gLink.selectAll('path')
       .data(links, d => d.target.id);
 
+    console.log(link);
+
     // Enter any new links at the parent's previous position.
     const linkEnter = link.enter().append('path')
       .attr('d', d => {
         const o = { x: source.x, y: source.y };
-        return this.diagonal({ source: o, target: o });
+        return this.diagonal({ source: o as any, target: o as any })
       });
 
     // Transition links to their new position.
@@ -187,9 +167,8 @@ export class D3FailuresTreeComponent implements OnInit {
     // Transition exiting nodes to the parent's new position.
     link.exit().transition(transition).remove()
       .attr('d', d => {
-        const o = { 0: source.x, 1: source.y };
-        // this.diagonal({ source: o, target: { "0"}})
-        return this.diagonal({ source: o, target: o }, [ o ]);
+        const o = { x: source.x, y: source.y };
+        return this.diagonal({ source: o as any, target: o as any })
       });
 
     // Stash the old positions for transition.

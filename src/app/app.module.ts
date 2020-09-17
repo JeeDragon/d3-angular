@@ -5,18 +5,22 @@ import { AppComponent } from './app.component';
 import { D3FailuresTreeComponent } from './d3-failures-tree/d3-failures-tree.component';
 import { D3FailuresGraphComponent } from './d3-failures-graph/d3-failures-graph.component';
 import { TreeCollapseComponent } from './tree-collapse/tree-collapse.component';
+import { AngularD3Component } from './angular-d3/angular-d3.component';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     AppComponent,
     D3FailuresTreeComponent,
     D3FailuresGraphComponent,
-    TreeCollapseComponent
+    TreeCollapseComponent,
+    AngularD3Component
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    FormsModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [ AppComponent ]
 })
 export class AppModule { }

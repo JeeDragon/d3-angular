@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
-import { json, thresholdFreedmanDiaconis } from 'd3';
-
+import { treeData0 } from '../data/tree-data';
 @Component({
   selector: 'app-d3-failures-graph',
   templateUrl: './d3-failures-graph.component.html',
@@ -10,13 +9,13 @@ import { json, thresholdFreedmanDiaconis } from 'd3';
 export class D3FailuresGraphComponent implements OnInit {
 
   private data = {
-    name: 'flare',
+    name: 'Level 0',
     children: [
       {
-        name: 'analytics',
+        name: 'Level 1',
         children: [
           {
-            name: 'cluster',
+            name: 'Level',
             children: [
               { name: 'AgglomerativeCluster', value: 3938 },
               { name: 'CommunityStructure', value: 3812 },
@@ -401,7 +400,7 @@ export class D3FailuresGraphComponent implements OnInit {
   }
 
   private createGraph() {
-    const root = d3.hierarchy(this.data);
+    const root = d3.hierarchy(treeData0);
     const links = root.links();
     const nodes = root.descendants();
 
@@ -441,6 +440,15 @@ export class D3FailuresGraphComponent implements OnInit {
           .attr('cx', (d: any) => d.x)
           .attr('cy', (d: any) => d.y);
       });
+
+    const diagonal = function linkD(d: any) {
+      return 'M' + d.source.y + ',' + d.source.x
+        + 'C' + (d.source.y + d.target.y) / 2 + ',' + d.source.x
+        + ' ' + (d.source.y + d.target.y) / 2 + ',' + d.target.x
+        + ' ' + d.target.y + ',' + d.target.x;
+    };
+    // const diagonal = d3.svg()
+    //   .projection(function (d) { return [ d.x, d.y ]; });
 
     const node = this.svg.append('g')
       .attr('transform', 'translate(200, 200)')

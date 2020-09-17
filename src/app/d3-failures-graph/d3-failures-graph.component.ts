@@ -56,18 +56,6 @@ export class D3FailuresGraphComponent implements OnInit {
       .join('line')
       .classed('link', true);
 
-    const node = this.svg.append('g')
-      .attr('fill', '#fff')
-      .attr('stroke', '#000')
-      .attr('stroke-width', 1.5)
-      .selectAll('circle')
-      .data(nodes)
-      .join('circle')
-      .attr('fill', d => d.children ? null : '#000')
-      .attr('stroke', d => d.children ? null : '#fff')
-      .attr('r', 10)
-      .classed('node', true)
-      .classed('fixed', (d: any) => d.fx !== undefined);
 
     this.simulation = d3
       .forceSimulation(nodes as any)
@@ -85,6 +73,19 @@ export class D3FailuresGraphComponent implements OnInit {
           .attr('cy', (d: any) => d.y);
       });
 
+    const node = this.svg.append('g')
+      .attr('fill', '#fff')
+      .attr('stroke', '#000')
+      .attr('stroke-width', 1.5)
+      .selectAll('circle')
+      .data(nodes)
+      .join('circle')
+      .attr('fill', d => d.children ? null : '#000')
+      .attr('stroke', d => d.children ? null : '#fff')
+      .attr('r', 10)
+      .classed('node', true)
+      .classed('fixed', (d: any) => d.fx !== undefined)
+      .call(this.drag(this.simulation));
     // .style('transform', `translate(10px, 50px)`)
     // .call(drag as any);
 
@@ -123,13 +124,13 @@ export class D3FailuresGraphComponent implements OnInit {
     //   .text(d => d.data.name);
 
 
-    const drag = d3
-      .drag()
-      .on('start', this.dragstarted)
-      .on('drag', this.dragged)
-      .on('end', this.dragended);
+    // const drag = d3
+    //   .drag()
+    //   .on('start', this.dragstarted)
+    //   .on('drag', this.dragged)
+    //   .on('end', this.dragended);
     node
-      .call(drag as any)
+      .call(this.drag(this.simulation))
       .on('click', this.click);
 
     // d3.invalidation.then(() => this.simulation.stop());
@@ -142,13 +143,13 @@ export class D3FailuresGraphComponent implements OnInit {
     console.log(d);
     delete d.fx;
     delete d.fy;
-    // this.svg.classed('fixed', false);
+    d3.select(this as any).classed('fixed', false);
     this.simulation.alpha(1).restart();
   }
 
   dragstarted = (event, d) => {
     if (!event.active) { this.simulation.alphaTarget(0.3).restart(); }
-    d3.select(this as any).classed('fixed', true);
+    // d3.select(this as any).classed('fixed', true);
     d.fx = d.x;
     d.fy = d.y;
   }
@@ -156,6 +157,7 @@ export class D3FailuresGraphComponent implements OnInit {
   dragged = (event, d) => {
     d.fx = this.clamp(event.x, 0, this.width);
     d.fy = this.clamp(event.y, 0, this.height);
+    d3.select(this as any).classed('fixed', true);
     this.simulation.alpha(1).restart();
   }
 
@@ -167,6 +169,32 @@ export class D3FailuresGraphComponent implements OnInit {
 
   clamp(x, lo, hi) {
     return x < lo ? lo : x > hi ? hi : x;
+  }
+
+  drag = (simulation) => {
+
+    function dragstarted(event) {
+      if (!event.active) { simulation.alphaTarget(0.3).restart(); }
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
+
+    function dragged(event) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+      d3.select(this as any).classed('fixed', true);
+    }
+
+    function dragended(event) {
+      if (!event.active) { simulation.alphaTarget(0); }
+      event.subject.fx = null;
+      event.subject.fy = null;
+    }
+
+    return d3.drag()
+      .on('start', dragstarted)
+      .on('drag', dragged)
+      .on('end', dragended);
   }
 
 }

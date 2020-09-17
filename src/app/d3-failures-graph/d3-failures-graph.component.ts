@@ -47,10 +47,13 @@ export class D3FailuresGraphComponent implements OnInit {
       .attr('viewBox', `0, 0, ${ this.width }, ${ this.height }`)
       .style('font', '22px sans-serif')
       .style('user-select', 'none');
+    // .attr('transform', 'translate(200, 200)');
 
     const link = this.svg.append('g')
+      .attr('transform', 'translate(200, 200)')
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', 1.5)
       .selectAll('line')
       .data(links)
       .join('line')
@@ -74,9 +77,12 @@ export class D3FailuresGraphComponent implements OnInit {
       });
 
     const node = this.svg.append('g')
-      .attr('fill', '#fff')
+      .attr('transform', 'translate(200, 200)')
+      .attr('fill', '#4e4e4e')
       .attr('stroke', '#000')
       .attr('stroke-width', 1.5)
+      .attr('cursor', 'pointer')
+      .attr('pointer-events', 'all')
       .selectAll('circle')
       .data(nodes)
       .join('circle')
@@ -85,7 +91,20 @@ export class D3FailuresGraphComponent implements OnInit {
       .attr('r', 10)
       .classed('node', true)
       .classed('fixed', (d: any) => d.fx !== undefined)
-      .call(this.drag(this.simulation));
+      .call(this.drag(this.simulation, this.clamp));
+
+
+    node.append('text')
+      .attr('dy', '0.31em')
+      .attr('x', d => 10)
+      .attr('text-anchor', 'end')
+      .text(d => d.data.name)
+      .clone(true).lower()
+      .attr('stroke-linejoin', 'round')
+      .attr('stroke-width', 3)
+      .attr('stroke', 'white');
+
+
     // .style('transform', `translate(10px, 50px)`)
     // .call(drag as any);
 
@@ -95,11 +114,34 @@ export class D3FailuresGraphComponent implements OnInit {
     //   .style('fill', 'steelblue')
     //   .text('Sev3');
 
-    const node2 = this.svg.selectAll('.node')
-      .data(nodes)
-      .enter()
-      .append('g')
-      .attr('class', 'node');
+    // const nodeEnter = node.append('g')
+    //   // .attr('transform', d => `translate(${ source.y0 },${ source.x0 })`)
+    //   .attr('fill-opacity', 0)
+    //   .attr('stroke-opacity', 0);
+    // // .on('click', (event, d) => {
+    // //   d.children = d.children ? null : d._children;
+    // //   update(d);
+    // // });
+
+    // nodeEnter.append('circle')
+    //   .attr('r', 2.5)
+    //   .attr('fill', d => d._children ? '#555' : '#999')
+    //   .attr('stroke-width', 10);
+
+    // nodeEnter.append('text')
+    //   .attr('dy', '0.31em')
+    //   .attr('x', d => d._children ? -6 : 6)
+    //   .attr('text-anchor', d => d._children ? 'end' : 'start')
+    //   .text(d => d.data.name)
+    //   .clone(true).lower()
+    //   .attr('stroke-linejoin', 'round')
+    //   .attr('stroke-width', 3)
+    //   .attr('stroke', 'white');
+    // const node2 = this.svg.selectAll('.node')
+    //   .data(nodes)
+    //   .enter()
+    //   .append('g')
+    //   .attr('class', 'node');
     // .call(drag);
 
     // node.append('text')
@@ -112,28 +154,19 @@ export class D3FailuresGraphComponent implements OnInit {
     //     return d.data.name;
     //   });
 
-    const nodeLabels = node2.append('svg:text')
-      .classed('node-label', true)
-      .attr('dy', 24)
-      .attr('text-anchor', 'middle')
-      .text(d => d.data.name);
-
-    node2.attr('transform', (d: any) => `translate(${ d.x }, ${ d.y })`);
-
-    // node.append('title')
+    // const nodeLabels = node2.append('svg:text')
+    //   .classed('node-label', true)
+    //   .attr('dy', 24)
+    //   .attr('text-anchor', 'middle')
     //   .text(d => d.data.name);
 
+    // node2.attr('transform', (d: any) => `translate(${ d.x }, ${ d.y })`);
 
-    // const drag = d3
-    //   .drag()
-    //   .on('start', this.dragstarted)
-    //   .on('drag', this.dragged)
-    //   .on('end', this.dragended);
     node
-      .call(this.drag(this.simulation))
+      .call(this.drag(this.simulation, this.clamp))
       .on('click', this.click);
 
-    // d3.invalidation.then(() => this.simulation.stop());
+    this.update(node, this.svg, nodes);
 
     return this.svg.node();
   }
@@ -144,57 +177,76 @@ export class D3FailuresGraphComponent implements OnInit {
     delete d.fx;
     delete d.fy;
     d3.select(this as any).classed('fixed', false);
-    this.simulation.alpha(1).restart();
-  }
-
-  dragstarted = (event, d) => {
-    if (!event.active) { this.simulation.alphaTarget(0.3).restart(); }
-    // d3.select(this as any).classed('fixed', true);
-    d.fx = d.x;
-    d.fy = d.y;
-  }
-
-  dragged = (event, d) => {
-    d.fx = this.clamp(event.x, 0, this.width);
-    d.fy = this.clamp(event.y, 0, this.height);
-    d3.select(this as any).classed('fixed', true);
-    this.simulation.alpha(1).restart();
-  }
-
-  dragended = (event, d) => {
-    if (!event.active) { this.simulation.alphaTarget(0); }
-    d.fx = null;
-    d.fy = null;
+    console.log(this);
+    console.log(event);
+    console.log(d);
   }
 
   clamp(x, lo, hi) {
     return x < lo ? lo : x > hi ? hi : x;
   }
 
-  drag = (simulation) => {
+  drag = (simulation, clamp) => {
 
     function dragstarted(event) {
       if (!event.active) { simulation.alphaTarget(0.3).restart(); }
+      d3.select(this as any).classed('fixed', true);
+
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
     }
 
     function dragged(event) {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
-      d3.select(this as any).classed('fixed', true);
+      event.subject.fx = clamp(event.x, 0, this.width);
+      event.subject.fy = clamp(event.y, 0, this.height);
+      simulation.alpha(1).restart();
     }
 
-    function dragended(event) {
-      if (!event.active) { simulation.alphaTarget(0); }
-      event.subject.fx = null;
-      event.subject.fy = null;
-    }
+    // function dragended(event) {
+    //   if (!event.active) { simulation.alphaTarget(0); }
+    //   event.subject.fx = null;
+    //   event.subject.fy = null;
+    // }
+
 
     return d3.drag()
       .on('start', dragstarted)
-      .on('drag', dragged)
-      .on('end', dragended);
+      .on('drag', dragged);
+    // .on('end', dragended);
   }
 
+  update(source, svg, nodes) {
+
+    // const gNode = svg.append('g')
+    //   .attr('cursor', 'pointer')
+    //   .attr('pointer-events', 'all');
+
+    const node = source.selectAll('g')
+      .data(nodes, d => d.id);
+
+    // Enter any new nodes at the parent's previous position.
+    const nodeEnter = node.enter().append('g')
+      .attr('transform', d => `translate(${ source.y0 },${ source.x0 })`)
+      .attr('fill-opacity', 0)
+      .attr('stroke-opacity', 0)
+      .on('click', (event, d) => {
+        d.children = d.children ? null : d._children;
+        this.update(d, svg, nodes);
+      });
+
+    // nodeEnter.append('circle')
+    //   .attr('r', 2.5)
+    //   .attr('fill', d => d._children ? '#555' : '#999')
+    //   .attr('stroke-width', 10);
+
+    nodeEnter.append('text')
+      .attr('dy', '0.31em')
+      .attr('x', d => d._children ? -6 : 6)
+      .attr('text-anchor', d => d._children ? 'end' : 'start')
+      .text(d => d.data.name)
+      .clone(true).lower()
+      .attr('stroke-linejoin', 'round')
+      .attr('stroke-width', 3)
+      .attr('stroke', 'white');
+  }
 }

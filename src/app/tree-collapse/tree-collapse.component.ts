@@ -171,7 +171,7 @@ export class TreeCollapseComponent implements OnInit {
   tree(data) {
     // d3.tree().nodeSize([ this.dx, this.dy ]);
     const root: any = d3.hierarchy(treeData0);
-    root.dx = 10;
+    root.dx = 8;
     root.dy = this.width / (root.height + 10);
     return d3.tree().nodeSize([ root.dx, root.dy ])(root);
   }

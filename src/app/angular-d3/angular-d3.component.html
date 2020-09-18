@@ -5,7 +5,7 @@
 <input [(ngModel)]="fontSize"
        type="number">
 <svg viewBox="0, 0, 1200, 1200"
-     font-family="sans-serif"
+     [attr.font-family]="'sans-serif'"
      [attr.font-size]="fontSizeNum">
   <!-- Nodes -->
   <g cursor="pointer"
@@ -13,7 +13,7 @@
      [attr.transform]="'translate(100,200)'">
     <g *ngFor="let d of nodes"
        class="node"
-       [attr.transform]="'translate(' + d.x + ',' + d.y + ')'">
+       [attr.transform]="'translate(' + d.y + ',' + d.x + ')'">
       <text dy="0.31em"
             x="-15"
             text-anchor="end">{{ d.data.name }}</text>

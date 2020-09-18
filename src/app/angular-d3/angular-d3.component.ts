@@ -58,7 +58,8 @@ export class AngularD3Component implements OnInit {
   tree(data) {
     const root: d3.HierarchyNode<any> = d3.hierarchy(treeData0);
     (root as any).dx = 10;
-    (root as any).dy = this.width / (root.height + 10);
+    (root as any).dy = this.dy;
+    console.log(root);
     return d3.tree().nodeSize([ (root as any).dx, (root as any).dy ])(root);
   }
 
